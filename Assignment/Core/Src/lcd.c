@@ -17,9 +17,9 @@ extern I2C_HandleTypeDef hi2c1;
 #define LCD_PIN_BL       0x08
 
 static uint8_t lcd_present = 0;         
-static void lcd_wait_ms(uint16_t ms)
+static void lcd_wait_ms(uint32_t ms)
 {
-    uint16_t t0 = HAL_GetTick();
+    uint32_t t0 = HAL_GetTick();
     while ((HAL_GetTick() - t0) <= ms) { }
 }
 
@@ -91,7 +91,7 @@ void lcd_print_int(int32_t value)
 {
     char buf[12];
     uint8_t n = 0;
-    uint16_t u = (value < 0) ? (uint32_t)(-(value + 1)) + 1u : (uint16_t)value;
+    uint32_t u = (value < 0) ? (uint32_t)(-(value + 1)) + 1u : (uint32_t)value;
 
     do { buf[n++] = (char)('0' + (u % 10u)); u /= 10u; } while (u);
     if (value < 0) lcd_send_byte('-', 1);
