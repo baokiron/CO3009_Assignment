@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
+  ****************************************************************************
   * @file           : main.c
   * @brief          : Main program body
-  ******************************************************************************
+  ****************************************************************************
   * @attention
   *
   * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
@@ -14,7 +14,7 @@
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
-  ******************************************************************************
+  ****************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -22,7 +22,16 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "global.h"
+#include "scheduler.h"
+#include "software_timer.h"
+#include "button.h"
+#include "traffic_light.h"
+#include "lcd.h"
+#include "dht20.h"
+#include "fsm_automatic.h"
+#include "fsm_manual.h"
+#include "fsm_tuning.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,7 +106,28 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  /* ---- Khoi tao (HAL_Delay chi duoc dung o day, truoc khi chay scheduler) ---- */
+  global_init();
+  SCH_Init();
+  button_init();
+  traffic_init();
+  lcd_init();
+  dht20_init();
 
+  /* ---- A: scheduler va FSM tu dong (1 tick = 10 ms) ---- */
+  SCH_Add_Task(button_read,        1, 1);      /* doc nut truoc cac FSM */
+  SCH_Add_Task(timer_run,          1, 1);
+  SCH_Add_Task(fsm_automatic_run,  1, 1);
+
+  /* ---- B: FSM thu cong ---- */
+  SCH_Add_Task(fsm_manual_run,     1, 1);
+
+  /* ---- C: FSM chinh thoi gian, LCD, DHT20 ---- */
+  SCH_Add_Task(fsm_tuning_run,     1, 1);
+  SCH_Add_Task(lcd_env_task,       20, 20);    /* 200 ms, chi ve lai khi gia tri doi */
+  SCH_Add_Task(dht20_task,         MS_TO_TICKS(2000), MS_TO_TICKS(2000)); /* 2 s */
+
+  HAL_TIM_Base_Start_IT(&htim2);               /* bat tick 10 ms sau khi da dang ky task */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -107,6 +137,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    SCH_Dispatch_Tasks();
   }
   /* USER CODE END 3 */
 }
@@ -336,7 +367,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM2) {
+    SCH_Update();                              /* O(1), moi 10 ms */
+  }
+}
 /* USER CODE END 4 */
 
 /**
