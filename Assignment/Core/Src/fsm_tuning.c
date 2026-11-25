@@ -9,6 +9,10 @@
 #define TMR_TUNE        2                
 #define FEEDBACK_MS     1500
 
+#define TUNE_BTN_SELECT  BTN_NEXT
+#define TUNE_BTN_UP      BTN_INC
+#define TUNE_BTN_DOWN    BTN_CONFIRM
+
 enum { IDX_RED = 0, IDX_GREEN, IDX_AMBER };
 
 static uint8_t           draft[3];      
@@ -56,36 +60,42 @@ static void tune_draw(void)
     else                       lcd_print("BAD ");
 }
 
+/* Ghi ban nhap vao time_* neu hop le. Tra ve 1 neu da luu. */
+static uint8_t tune_commit(void)
+{
+    if (!tune_is_valid()) return 0;
+    time_red   = draft[IDX_RED];
+    time_green = draft[IDX_GREEN];
+    time_amber = draft[IDX_AMBER];
+    return 1;
+}
+
 static void tune_handle(void)            
 {
     uint8_t idx = (uint8_t)(status - TUNE_RED);
 
-    if (isButtonPressed(BTN_MODE)) {                     /* sang AUTO, bo thay doi chua xac nhan */
+    if (isButtonPressed(BTN_MODE)) {                     /* sang AUTO, luu neu hop le */
+        tune_commit();
         clearTimer(TMR_TUNE);
         mode   = MODE_AUTO;
         status = AUTO_INIT;
         return;
     }
-    if (isButtonPressed(BTN_NEXT)) {                     /* RED -> GREEN -> AMBER -> RED */
+    if (isButtonPressed(TUNE_BTN_SELECT)) {              /* luu gia tri roi sang den ke tiep */
+        feedback = tune_commit() ? "SAVE" : "ERR!";      /* ERR!: khong hop le, chua luu, draft giu nguyen */
+        setTimer(TMR_TUNE, MS_TO_TICKS(FEEDBACK_MS));
         status = (status == TUNE_AMBER) ? TUNE_RED : (SystemState)(status + 1);
         redraw = 1;
     }
-    if (isButtonPressed(BTN_INC)) {                      /* +1, vuot MAX thi ve MIN */
+    if (isButtonPressed(TUNE_BTN_UP)) {                  /* +1, vuot MAX thi ve MIN */
         draft[idx] = (draft[idx] >= MAX_TIME) ? MIN_TIME : (uint8_t)(draft[idx] + 1);
         feedback   = "";
         redraw     = 1;
     }
-    if (isButtonPressed(BTN_CONFIRM)) {
-        if (tune_is_valid()) {
-            time_red   = draft[IDX_RED];
-            time_green = draft[IDX_GREEN];
-            time_amber = draft[IDX_AMBER];
-            feedback   = "SAVE";
-        } else {
-            feedback   = "ERR!";                         /* giu draft, khong ghi time_* */
-        }
-        setTimer(TMR_TUNE, MS_TO_TICKS(FEEDBACK_MS));
-        redraw = 1;
+    if (isButtonPressed(TUNE_BTN_DOWN)) {                /* -1, xuong duoi MIN thi ve MAX */
+        draft[idx] = (draft[idx] <= MIN_TIME) ? MAX_TIME : (uint8_t)(draft[idx] - 1);
+        feedback   = "";
+        redraw     = 1;
     }
     if (timer_flag[TMR_TUNE]) {                          /* het thoi gian hien thong bao */
         clearTimer(TMR_TUNE);
