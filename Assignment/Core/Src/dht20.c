@@ -57,14 +57,14 @@ uint8_t dht20_trigger(void)
 uint8_t dht20_read(void)
 {
     uint8_t  b[7];
-    uint16_t hraw, traw;
+    uint32_t hraw, traw;                                 /* du lieu 20 bit, khong dung uint16_t */
 
     if (HAL_I2C_Master_Receive(&hi2c1, DHT20_ADDR, b, 7, DHT20_TIMEOUT_MS) != HAL_OK) return 0;
     if (b[0] & 0x80) return 0;                           /* bit 7 = dang ban */
     if (dht20_crc8(b, 6) != b[6]) return 0;              /* sai CRC: giu gia tri cu */
 
-    hraw = ((uint16_t)b[1] << 12) | ((uint16_t)b[2] << 4) | (b[3] >> 4);
-    traw = ((uint16_t)(b[3] & 0x0F) << 16) | ((uint16_t)b[4] << 8) | b[5];
+    hraw = ((uint32_t)b[1] << 12) | ((uint32_t)b[2] << 4) | (uint32_t)(b[3] >> 4);
+    traw = ((uint32_t)(b[3] & 0x0F) << 16) | ((uint32_t)b[4] << 8) | (uint32_t)b[5];
 
     dht20_humidity    = (float)hraw * 100.0f / 1048576.0f;            /* / 2^20 */
     dht20_temperature = (float)traw * 200.0f / 1048576.0f - 50.0f;
