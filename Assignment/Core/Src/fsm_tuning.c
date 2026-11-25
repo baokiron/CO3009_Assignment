@@ -11,7 +11,7 @@
 
 #define TUNE_BTN_SELECT  BTN_NEXT
 #define TUNE_BTN_UP      BTN_INC
-#define TUNE_BTN_DOWN    BTN_CONFIRM
+#define TUNE_BTN_DOWN    BTN_DEC
 
 enum { IDX_RED = 0, IDX_GREEN, IDX_AMBER };
 
@@ -74,8 +74,7 @@ static void tune_handle(void)
 {
     uint8_t idx = (uint8_t)(status - TUNE_RED);
 
-    if (isButtonPressed(BTN_MODE)) {                     /* sang AUTO, luu neu hop le */
-        tune_commit();
+    if (isButtonPressed(BTN_MODE)) {                     /* sang AUTO, bo ban nhap chua xac nhan */
         clearTimer(TMR_TUNE);
         mode   = MODE_AUTO;
         status = AUTO_INIT;
