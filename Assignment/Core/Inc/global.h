@@ -73,10 +73,10 @@ extern float dht20_temperature;     /* degrees Celsius                       */
 extern float dht20_humidity;        /* percent RH                            */
 
 
-#define BTN_MODE        0   /* switch mode: AUTO -> MANUAL -> TUNING -> AUTO  */
-#define BTN_NEXT        1   /* manual: next state / tuning: select light      */
-#define BTN_INC         2   /* tuning: increase duration                      */
-#define BTN_CONFIRM     3   /* tuning: confirm value                          */
+#define BTN_MODE        0   /* switch mode: AUTO -> MANUAL -> TUNING -> AUTO       */
+#define BTN_NEXT        1   /* manual: next state / tuning: save + next light      */
+#define BTN_INC         2   /* tuning: increase duration (+1)                      */
+#define BTN_DEC         3   /* tuning: decrease duration (-1)                      */
 
 
 void global_init(void);     /* sets defaults for mode, status, time_*         */
