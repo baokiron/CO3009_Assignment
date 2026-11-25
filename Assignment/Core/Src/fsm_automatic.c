@@ -19,14 +19,14 @@ static void auto_print_two_digits(uint8_t val)
     lcd_print_int((int32_t)val);
 }
 
+/* Countdown chuyển lên hàng 0, đúng 16 ký tự, bỏ chữ 's' */
 static void auto_update_lcd_countdown(void)
 {
-    lcd_set_cursor(1U, 0U);
-    lcd_print("R1:");
+    lcd_set_cursor(0U, 0U);
+    lcd_print("AUTO R1:");
     auto_print_two_digits(countdown_r1);
-    lcd_print("s  R2:");
+    lcd_print(" R2:");
     auto_print_two_digits(countdown_r2);
-    lcd_print("s ");
 }
 
 static void auto_enter_state(SystemState next_state, LightColor c1, LightColor c2,
@@ -89,13 +89,9 @@ void fsm_automatic_run(void)
         clearTimer(TIMER_AUTO_LIGHT);
         clearTimer(TIMER_AUTO_COUNTDOWN);
 
-        lcd_clear();
-        lcd_set_cursor(0U, 0U);
-        lcd_print("MODE: AUTO");
-
         setTimer(TIMER_AUTO_COUNTDOWN, MS_TO_TICKS(1000U));
         auto_enter_state(AUTO_RED1_GREEN2, LIGHT_RED, LIGHT_GREEN,
-                         time_green, time_red, time_green);
+                        time_green, time_red, time_green);
         break;
 
     case AUTO_RED1_GREEN2:
